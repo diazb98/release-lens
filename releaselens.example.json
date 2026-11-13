@@ -1,0 +1,49 @@
+{
+  "title": "Mi Sistema - Ambiente QA",
+  "fromLabel": "${PREVIOUS_RELEASE}",
+  "toLabel": "${RELEASE_VERSION}",
+  "repos": [
+    {
+      "name": "front-web",
+      "kind": "front",
+      "source": "https://git.mi-empresa.com/canales/front-web.git",
+      "to": "${FRONT_COMMIT}"
+    },
+    {
+      "name": "api-clientes",
+      "kind": "back",
+      "source": "https://git.mi-empresa.com/servicios/api-clientes.git",
+      "to": "${API_CLIENTES_COMMIT}"
+    },
+    {
+      "name": "api-pagos",
+      "kind": "back",
+      "source": "https://git.mi-empresa.com/servicios/api-pagos.git",
+      "to": "${API_PAGOS_COMMIT}"
+    }
+  ],
+  "jira": {
+    "baseUrl": "https://mi-empresa.atlassian.net/browse/",
+    "projects": ["CAN", "PAG"]
+  },
+  "api": [
+    { "name": "api-clientes", "repo": "api-clientes", "file": "src/main/resources/openapi.yaml" },
+    {
+      "name": "api-pagos",
+      "old": { "url": "https://api-pagos.prod.mi-empresa.com/v3/api-docs" },
+      "new": { "url": "https://api-pagos.qa.mi-empresa.com/v3/api-docs" }
+    }
+  ],
+  "ui": {
+    "old": { "baseUrl": "https://app.prod.mi-empresa.com/" },
+    "new": { "baseUrl": "https://app.qa.mi-empresa.com/" },
+    "storageState": "./auth/sesion-qa.json",
+    "visualThreshold": 0.5,
+    "pages": [
+      { "name": "Registro de cliente", "path": "registro", "apis": ["/api/clientes"] },
+      { "name": "Pago", "path": "pago", "apis": ["/api/pagos"] },
+      { "name": "Mi perfil", "path": "perfil", "match": ["perfil", "profile"] }
+    ]
+  },
+  "ai": { "provider": "prompt" }
+}

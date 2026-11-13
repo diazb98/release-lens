@@ -1,0 +1,46 @@
+// Ejemplo: agrega esta etapa al final de tu pipeline de despliegue.
+// Requiere: Node.js 20+, git y el plugin "HTML Publisher" (opcional, para ver el reporte en Jenkins).
+pipeline {
+  agent any
+
+  environment {
+    // Commits desplegados (normalmente ya los tienes de las etapas de build/deploy).
+    FRONT_COMMIT        = "${params.FRONT_COMMIT ?: 'main'}"
+    API_CLIENTES_COMMIT = "${params.API_CLIENTES_COMMIT ?: 'main'}"
+    API_PAGOS_COMMIT    = "${params.API_PAGOS_COMMIT ?: 'main'}"
+    RELEASE_VERSION     = "build-${env.BUILD_NUMBER}"
+  }
+
+  stages {
+    // ... tus etapas de build y deploy de imágenes ...
+
+    stage('ReleaseLens: ¿qué cambió?') {
+      steps {
+        dir('release-lens') {
+          git url: 'https://github.com/diazb98/release-lens.git', branch: 'main'
+          sh 'npm ci && npx playwright install --with-deps chromium'
+          // La primera vez no hay versión anterior; desde la segunda, se compara
+          // contra lo último desplegado, guardado en el archivo de estado.
+          sh '''
+            node bin/release-lens.mjs \
+              --config ../releaselens.json \
+              --state "$JENKINS_HOME/release-lens/state-qa.json" \
+              --save-state \
+              --out ../release-report
+          '''
+        }
+      }
+      post {
+        always {
+          archiveArtifacts artifacts: 'release-report/**', allowEmptyArchive: true
+          publishHTML(target: [
+            reportName: 'ReleaseLens', reportDir: 'release-report', reportFiles: 'index.html',
+            keepAll: true, alwaysLinkToLastBuild: true, allowMissing: true
+          ])
+          // Opcional: enviar el resumen a QA por correo (plugin Email Extension).
+          // emailext subject: "ReleaseLens ${RELEASE_VERSION}", body: readFile('release-report/resumen.md'), to: 'qa@mi-empresa.com'
+        }
+      }
+    }
+  }
+}

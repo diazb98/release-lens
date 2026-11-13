@@ -1,0 +1,7 @@
+node_modules/
+release-report/
+.release-lens/
+demo/.work/
+
+# Borrador personal, no se publica en el repositorio
+LINKEDIN_POST.md
